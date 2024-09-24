@@ -1,0 +1,262 @@
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自助餐小遊戲</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        /* background-color: #f0f0f0; */
+        background-image:
+            linear-gradient(to bottom, #eeec93, rgba(139, 231, 219, 0.767)),
+            url('images/bg.jpg');
+        background-size:100%;
+        background-position: center;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    h1 {
+        color: #333;
+        text-align: center;
+    }
+
+    #plates-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .plate {
+        width: 420px;
+        height: 300px;
+        background-color: #fcf0de;
+        border: 3px solid #c0ad84;
+        border-radius: 15px;
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Create 6 slots */
+        grid-template-rows: repeat(2, 1fr);
+    }
+
+    .plate-slot {
+        position: relative;
+        border: 1px dashed #ccc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    #add-plate {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 5px;
+    }
+    .delete-plate {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background-color: gray;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #food-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .food-item {
+        width: 100px;
+        height: 100px;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column; /* Allows name to be under image */
+        background-color: white;
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+
+    .food-item:hover {
+        transform: scale(1.1);
+    }
+
+    .food-item img {
+        max-width: 75%;
+        max-height: 75%;
+        pointer-events: none;
+    }
+
+    .food-name {
+        font-size: 12px;
+        color: #333;
+        margin-top: 5px;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+    <h1>自助餐小遊戲</h1>
+    <p>你和媽媽一起來到一家自助餐吃飯，媽媽允許你挑你最喜歡的菜來吃，你會放甚麼進你的餐盤呢？</p>
+
+    <!-- Plates container moved above food options -->
+    <div id="plates-container">
+        <div class="plate">
+
+            <!-- Add 6 slots for food placement -->
+            <div class="plate-slot" data-slot="1"></div>
+            <div class="plate-slot" data-slot="2"></div>
+            <div class="plate-slot" data-slot="3"></div>
+            <div class="plate-slot" data-slot="4"></div>
+            <div class="plate-slot" data-slot="5"></div>
+            <div class="plate-slot" data-slot="6"></div>
+
+            <!-- Delete button moved to the bottom -->
+            <button class="delete-plate" onclick="deletePlate(this)">×</button>
+       
+        </div>
+    </div>
+
+    <div id="food-options"></div>
+    
+    <button id="add-plate" onclick="addPlate()">增加餐盤</button>
+
+<script>
+const foods = [
+    { name: '白米飯', image: 'images/白米飯.jpg' },
+    { name: '泡麵', image: 'images/泡麵.jpg' },
+    { name: '烏龍麵', image: 'images/烏龍麵.jpg' },
+
+    { name: '青江菜', image: 'images/青江菜.jpg' },
+    { name: '地瓜葉', image: 'images/地瓜葉.jpg' },
+    { name: '空心菜', image: 'images/空心菜.jpg' },
+    { name: '菠菜', image: 'images/菠菜.jpg' },
+    { name: '高麗菜', image: 'images/高麗菜.jpg' },
+    { name: '小黃瓜', image: 'images/小黃瓜.jpg' },
+    { name: '花椰菜', image: 'images/花椰菜.jpg' },
+
+    { name: '涼拌干絲', image: 'images/涼拌干絲.jpg' },
+    { name: '豆干', image: 'images/豆干.jpg' },
+
+    { name: '荷包蛋', image: 'images/荷包蛋.jpg' },
+    { name: '番茄炒蛋', image: 'images/番茄炒蛋.jpg' },
+
+    { name: '魚排', image: 'images/魚排.jpg' },
+    { name: '牛排', image: 'images/牛排.jpg' },
+    { name: '雞排', image: 'images/雞排.jpg' },
+
+    { name: '白開水', image: 'images/白開水.jpg' },
+    { name: '珍珠奶茶', image: 'images/珍珠奶茶.jpg' },
+    { name: '養樂多', image: 'images/養樂多.jpg' }
+
+];
+
+function createFoodItems() {
+    const foodOptions = document.getElementById('food-options');
+    foods.forEach((food, index) => {
+        const foodItem = document.createElement('div');
+        foodItem.className = 'food-item';
+        foodItem.id = `food-${index}`;
+        
+        // Set food item click event
+        foodItem.onclick = function() { addFoodToPlate(food); };
+
+        const img = document.createElement('img');
+        img.src = food.image;
+        img.alt = food.name;
+        img.title = food.name;
+
+        const foodName = document.createElement('div');
+        foodName.className = 'food-name';
+        foodName.textContent = food.name;
+
+        foodItem.appendChild(img);
+        foodItem.appendChild(foodName);
+        foodOptions.appendChild(foodItem);
+    });
+}
+
+function addFoodToPlate(food) {
+    const plates = document.querySelectorAll('.plate');
+    
+    // Check for the first available empty slot in the plates
+    for (const plate of plates) {
+        const emptySlot = Array.from(plate.querySelectorAll('.plate-slot')).find(slot => slot.children.length === 0);
+        if (emptySlot) {
+            const foodImg = document.createElement('img');
+            foodImg.src = food.image;
+            foodImg.alt = food.name;
+            foodImg.style.width = '80%'; // Maintain original size
+            
+            const foodName = document.createElement('div');
+            foodName.className = 'food-name';
+            foodName.textContent = food.name;
+
+            const foodContainer = document.createElement('div');
+            foodContainer.className = 'food-item';
+            foodContainer.appendChild(foodImg);
+            foodContainer.appendChild(foodName);
+            
+            emptySlot.appendChild(foodContainer);
+            
+            // Double click to remove
+            foodContainer.ondblclick = function() { emptySlot.innerHTML = ''; };
+            break;
+        }
+    }
+}
+
+function addPlate() {
+    const platesContainer = document.getElementById('plates-container');
+    const newPlate = document.createElement('div');
+    newPlate.className = 'plate';
+
+    for (let i = 1; i <= 6; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'plate-slot';
+        slot.dataset.slot = i;
+        newPlate.appendChild(slot);
+    }
+
+    platesContainer.appendChild(newPlate);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-plate';
+    deleteButton.textContent = '×';
+    deleteButton.onclick = function() { deletePlate(this); };
+
+    newPlate.appendChild(deleteButton);
+    
+}
+
+function deletePlate(button) {
+    const plate = button.parentElement;
+    plate.remove();
+}
+
+window.onload = createFoodItems;
+</script>
+
+</body></html>
